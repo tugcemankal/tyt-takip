@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TYT Çalışma Takip | Sultan & Tuğçe</title>
+  <meta name="description" content="TYT ders çalışma takip platformu — Matematik, Fizik, Kimya, Biyoloji, Geometri konularını takip et." />
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#6366f1" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="TYT Takip" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
+  <link rel="icon" href="icon-192.png" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<div class="bg-grid"></div>
+
+<!-- ===== LOGIN SCREEN ===== -->
+<div id="login-screen">
+  <div class="login-container">
+    <div class="login-logo">
+      <div class="login-logo-icon">🎯</div>
+      <h1>TYT Takip</h1>
+      <p>Hedefine odaklan, başarıya ulaş</p>
+    </div>
+    <div class="login-card">
+      <div class="login-tabs">
+        <button class="login-tab active" id="tab-student" onclick="switchLoginTab('student')">👩‍🎓 Öğrenci</button>
+        <button class="login-tab" id="tab-admin" onclick="switchLoginTab('admin')">👩‍💼 Yönetici</button>
+      </div>
+      <div id="login-error" class="login-error">❌ Hatalı kullanıcı adı veya şifre</div>
+      <div class="form-group">
+        <label for="login-username">Kullanıcı Adı</label>
+        <input type="text" id="login-username" placeholder="Kullanıcı adınızı girin" autocomplete="username" />
+      </div>
+      <div class="form-group">
+        <label for="login-password">Şifre</label>
+        <input type="password" id="login-password" placeholder="Şifrenizi girin" autocomplete="current-password"
+               onkeydown="if(event.key==='Enter') doLogin()" />
+      </div>
+      <button class="btn btn-primary" onclick="doLogin()" id="login-btn">
+        <span id="login-btn-text">Giriş Yap</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MAIN APP ===== -->
+<div id="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <div class="sidebar-logo-icon">🎯</div>
+        <div>
+          <div class="sidebar-logo-text">TYT Takip</div>
+          <div class="sidebar-logo-sub">2025-2026</div>
+        </div>
+      </div>
+      <div class="user-badge">
+        <div class="user-avatar" id="sidebar-avatar">S</div>
+        <div class="user-info">
+          <div class="user-name" id="sidebar-name">Sultan</div>
+          <div class="user-role" id="sidebar-role">Öğrenci</div>
+        </div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <div class="nav-section-label">Genel</div>
+        <button class="nav-item active" id="nav-dashboard" onclick="showPage('dashboard')">
+          <span class="nav-item-icon">🏠</span> Ana Sayfa
+        </button>
+        <button class="nav-item" id="nav-deneme" onclick="showPage('deneme')">
+          <span class="nav-item-icon">📝</span> TYT Denemeler
+          <span class="nav-item-badge" id="deneme-badge">0</span>
+        </button>
+        <button class="nav-item" id="nav-admin" onclick="showPage('admin')" style="display:none">
+          <span class="nav-item-icon">📊</span> Yönetici Paneli
+        </button>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-label">Dersler</div>
+        <button class="nav-item" id="nav-matematik" onclick="showSubject('matematik')">
+          <span class="subject-dot" style="background:#818cf8"></span> Matematik
+          <span class="subject-progress-mini" id="mini-pct-matematik">0%</span>
+        </button>
+        <button class="nav-item" id="nav-fizik" onclick="showSubject('fizik')">
+          <span class="subject-dot" style="background:#22d3ee"></span> Fizik
+          <span class="subject-progress-mini" id="mini-pct-fizik">0%</span>
+        </button>
+        <button class="nav-item" id="nav-kimya" onclick="showSubject('kimya')">
+          <span class="subject-dot" style="background:#34d399"></span> Kimya
+          <span class="subject-progress-mini" id="mini-pct-kimya">0%</span>
+        </button>
+        <button class="nav-item" id="nav-biyoloji" onclick="showSubject('biyoloji')">
+          <span class="subject-dot" style="background:#fbbf24"></span> Biyoloji
+          <span class="subject-progress-mini" id="mini-pct-biyoloji">0%</span>
+        </button>
+        <button class="nav-item" id="nav-geometri" onclick="showSubject('geometri')">
+          <span class="subject-dot" style="background:#f472b6"></span> Geometri
+          <span class="subject-progress-mini" id="mini-pct-geometri">0%</span>
+        </button>
+      </div>
+    </nav>
+
+    <div class="sidebar-bottom">
+      <div class="overall-progress">
+        <div class="overall-progress-label">
+          <span>Genel İlerleme</span>
+          <span id="overall-pct-text">0%</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" id="overall-pct-fill" style="width:0%"></div>
+        </div>
+      </div>
+      <button class="btn-logout" onclick="doLogout()">🚪 Çıkış Yap</button>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main-content">
+
+    <!-- ===== DASHBOARD PAGE ===== -->
+    <div id="page-dashboard" class="page active">
+      <div class="page-header">
+        <div class="page-header-inner">
+          <div>
+            <div class="page-title" id="dashboard-title">Hoş Geldin! 👋</div>
+            <div class="page-subtitle" id="dashboard-subtitle">Bugünkü hedeflerine ulaş</div>
+          </div>
+          <div class="header-actions">
+            <div id="today-date-display" style="font-size:1.3rem;color:var(--text-secondary)"></div>
+          </div>
+        </div>
+      </div>
+      <div class="page" style="display:block">
+
+        <!-- Countdown -->
+        <div class="countdown-card" id="countdown-card">
+          <div class="countdown-icon">⏳</div>
+          <div class="countdown-info">
+            <h3>TYT'ye Sayıyor</h3>
+            <p>Programın <span id="plan-day-text">1.</span> günündesin</p>
+          </div>
+          <div class="countdown-days">
+            <div class="days-num" id="tyt-countdown">--</div>
+            <div class="days-label">Gün Kaldı</div>
+          </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid" id="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon">✅</div>
+            <div class="stat-value" id="stat-completed">0</div>
+            <div class="stat-label">Tamamlanan Video</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">🎯</div>
+            <div class="stat-value" id="stat-total">0</div>
+            <div class="stat-label">Toplam Video</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">🔥</div>
+            <div class="stat-value" id="stat-streak">0</div>
+            <div class="stat-label">Gün Serisi</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">📝</div>
+            <div class="stat-value" id="stat-deneme">0</div>
+            <div class="stat-label">Deneme Yapıldı</div>
+          </div>
+        </div>
+
+        <!-- Dashboard orta satır: Takvim + Bugün -->
+        <div class="dashboard-row">
+          <!-- Mini Takvim -->
+          <div class="mini-calendar-card">
+            <div id="mini-calendar"></div>
+          </div>
+
+          <!-- Today's Tasks -->
+          <div class="today-panel" id="today-panel" style="flex:1;min-width:0">
+            <div class="today-header">
+              <h2>📅 Bugünün Görevleri</h2>
+              <div class="today-meta">
+                <div class="today-progress-wrap">
+                  <span class="today-progress-text" id="today-pct-text">0/0</span>
+                  <div class="today-progress-bar">
+                    <div class="today-progress-fill" id="today-pct-fill" style="width:0%"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="today-tasks" id="today-tasks-list" style="max-height:420px;overflow-y:auto">
+            </div>
+          </div>
+        </div>
+
+        <!-- Subject Cards -->
+        <h2 style="font-size:1.8rem;font-weight:700;margin-bottom:1.6rem;">📚 Ders İlerlemeleri</h2>
+        <div class="subject-grid" id="subject-cards"></div>
+
+      </div>
+    </div>
+
+    <!-- ===== SUBJECT DETAIL PAGE ===== -->
+    <div id="page-subject" class="page">
+      <div class="subject-page-header">
+        <button class="back-btn" onclick="showPage('dashboard')">← Geri</button>
+        <div id="subject-header-icon" style="font-size:2.8rem">📐</div>
+        <div>
+          <div id="subject-header-title" style="font-size:2rem;font-weight:800">Matematik</div>
+          <div id="subject-header-sub" style="font-size:1.3rem;color:var(--text-secondary)">0/0 konu tamamlandı</div>
+        </div>
+        <div style="margin-left:auto">
+          <a id="subject-playlist-link" href="#" target="_blank" class="btn-sm" style="text-decoration:none">▶️ Playlist Aç</a>
+        </div>
+      </div>
+      <div style="padding:2.4rem 3.2rem">
+        <div class="topic-filters">
+          <button class="filter-btn active" onclick="filterTopics('all')">Tümü</button>
+          <button class="filter-btn" onclick="filterTopics('pending')">Bekliyor</button>
+          <button class="filter-btn" onclick="filterTopics('done')">Tamamlandı</button>
+        </div>
+        <div class="topics-list" id="topics-list"></div>
+      </div>
+    </div>
+
+    <!-- ===== DENEME PAGE ===== -->
+    <div id="page-deneme" class="page">
+      <div class="page-header">
+        <div class="page-header-inner">
+          <div>
+            <div class="page-title">📝 TYT Türkçe Denemeler</div>
+            <div class="page-subtitle">Her 2 günde bir deneme — takip et, geliş</div>
+          </div>
+        </div>
+      </div>
+      <div style="padding:3.2rem">
+        <div class="deneme-grid" id="deneme-grid"></div>
+      </div>
+    </div>
+
+    <!-- ===== ADMIN PAGE ===== -->
+    <div id="page-admin" class="page">
+      <div class="page-header">
+        <div class="page-header-inner">
+          <div>
+            <div class="page-title">📊 Yönetici Paneli</div>
+            <div class="page-subtitle">Sultan'ın tüm çalışma aktivitelerini takip et</div>
+          </div>
+        </div>
+      </div>
+      <div style="padding:3.2rem">
+
+        <!-- Date Picker -->
+        <div class="date-picker-card">
+          <h3>⚙️ Program Başlangıç Tarihi</h3>
+          <p>Çalışma programının hangi tarihte başladığını belirleyin</p>
+          <div class="date-input-row">
+            <input type="date" id="start-date-input" class="date-input" />
+            <button class="btn-sm" onclick="saveStartDate()">Kaydet</button>
+            <span id="start-date-current" style="font-size:1.3rem;color:var(--text-secondary)"></span>
+          </div>
+        </div>
+
+        <!-- Admin Stats -->
+        <div class="admin-overview" id="admin-overview"></div>
+
+        <!-- Subject Charts -->
+        <div class="subject-chart-grid">
+          <div class="chart-card">
+            <h3>📊 Ders Bazında İlerleme</h3>
+            <div class="bar-chart" id="admin-bar-chart"></div>
+          </div>
+          <div class="chart-card">
+            <h3>📅 Günlük Aktivite</h3>
+            <div id="admin-daily-chart"></div>
+          </div>
+        </div>
+
+        <!-- Activity Heatmap -->
+        <div class="heatmap-container">
+          <h3>🗓️ Çalışma Haritası (Son 70 Gün)</h3>
+          <div class="heatmap-grid" id="heatmap-grid"></div>
+        </div>
+
+        <!-- Activity Log -->
+        <div class="activity-log">
+          <div class="activity-log-header">📋 Son Aktiviteler</div>
+          <div id="activity-log-list">
+            <div class="empty-state" style="padding:4rem">
+              <div class="icon">📭</div>
+              <h3>Henüz aktivite yok</h3>
+              <p>Sultan çalışmaya başladığında burada görünecek</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toast-container"></div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <h2 id="modal-title">Emin misin?</h2>
+    <p id="modal-body"></p>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">İptal</button>
+      <button class="btn btn-primary" id="modal-confirm" style="flex:1">Onayla</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script>
+  window.onerror = function(msg, url, line, col, error) {
+    const errDiv = document.getElementById('login-error');
+    if (errDiv) {
+      errDiv.innerHTML = `SİSTEM HATASI:<br>${msg}<br>Satır: ${line}`;
+      errDiv.classList.add('show');
+      errDiv.style.background = '#ff0000';
+      errDiv.style.color = '#fff';
+    }
+  };
+</script>
+<script src="data.js"></script>
+<script src="app.js"></script>
+<script>
+  // Service Worker kaydı (PWA)
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js')
+        .then(() => console.log('SW kayıtlı ✓'))
+        .catch(e => console.log('SW hata:', e));
+    });
+  }
+</script>
+</body>
+</html>
