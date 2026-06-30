@@ -115,10 +115,10 @@ function saveActivity(log) {
   }
 }
 
-function logActivity(type, subject, title) {
+function logActivity(type, subject, title, extraDetails = '') {
   const log = loadActivity();
   log.push({
-    type, subject, title,
+    type, subject, title, extraDetails,
     timestamp: new Date().toISOString(),
     user: currentUser
   });
@@ -397,6 +397,8 @@ function renderTodayTasks(progress, planDay) {
   document.getElementById('today-pct-fill').style.width = pct + '%';
 }
 
+let currentScoreTask = null;
+
 function toggleTask(taskId, subject, el) {
   if (currentUser.role === 'admin') return;
 
@@ -404,6 +406,13 @@ function toggleTask(taskId, subject, el) {
   const wasCompleted = !!progress[taskId];
 
   if (!wasCompleted) {
+    // Deneme ise direkt tamamlamak yerine pop-up aç
+    if (subject === 'deneme' || subject === 'genel_deneme') {
+      openScoreModal(taskId, subject, el);
+      return;
+    }
+
+    // Normal video görevini tamamla
     // Tamamlandı olarak işaretle
     progress[taskId] = { completedAt: new Date().toISOString(), user: currentUser.username };
     el.classList.add('checked');
@@ -428,6 +437,118 @@ function toggleTask(taskId, subject, el) {
   updateSidebarProgress();
   renderTodayProgress(progress);
 }
+
+// ===== SCORE MODAL LOGIC =====
+function openScoreModal(taskId, subject, el) {
+  currentScoreTask = { id: taskId, subject, el };
+  document.getElementById('score-modal-net').textContent = '0.00';
+  const body = document.getElementById('score-modal-body');
+  
+  if (subject === 'deneme') {
+    body.innerHTML = `
+      <div class="score-row" data-subj="turkce">
+        <span class="score-row-label">TYT Türkçe</span>
+        <div class="score-inputs">
+          <div class="score-input-group"><label>Doğru</label><input type="number" min="0" max="40" class="inp-d" oninput="calcNet()"></div>
+          <div class="score-input-group"><label>Yanlış</label><input type="number" min="0" max="40" class="inp-y" oninput="calcNet()"></div>
+        </div>
+      </div>
+    `;
+  } else {
+    body.innerHTML = `
+      <div class="score-row" data-subj="turkce">
+        <span class="score-row-label">Türkçe</span>
+        <div class="score-inputs">
+          <div class="score-input-group"><label>Doğru</label><input type="number" min="0" max="40" class="inp-d" oninput="calcNet()"></div>
+          <div class="score-input-group"><label>Yanlış</label><input type="number" min="0" max="40" class="inp-y" oninput="calcNet()"></div>
+        </div>
+      </div>
+      <div class="score-row" data-subj="sosyal">
+        <span class="score-row-label">Sosyal</span>
+        <div class="score-inputs">
+          <div class="score-input-group"><label>Doğru</label><input type="number" min="0" max="20" class="inp-d" oninput="calcNet()"></div>
+          <div class="score-input-group"><label>Yanlış</label><input type="number" min="0" max="20" class="inp-y" oninput="calcNet()"></div>
+        </div>
+      </div>
+      <div class="score-row" data-subj="matematik">
+        <span class="score-row-label">Matematik</span>
+        <div class="score-inputs">
+          <div class="score-input-group"><label>Doğru</label><input type="number" min="0" max="40" class="inp-d" oninput="calcNet()"></div>
+          <div class="score-input-group"><label>Yanlış</label><input type="number" min="0" max="40" class="inp-y" oninput="calcNet()"></div>
+        </div>
+      </div>
+      <div class="score-row" data-subj="fen">
+        <span class="score-row-label">Fen</span>
+        <div class="score-inputs">
+          <div class="score-input-group"><label>Doğru</label><input type="number" min="0" max="20" class="inp-d" oninput="calcNet()"></div>
+          <div class="score-input-group"><label>Yanlış</label><input type="number" min="0" max="20" class="inp-y" oninput="calcNet()"></div>
+        </div>
+      </div>
+    `;
+  }
+
+  document.getElementById('score-modal').classList.add('visible');
+}
+
+function closeScoreModal() {
+  document.getElementById('score-modal').classList.remove('visible');
+  currentScoreTask = null;
+}
+
+function calcNet() {
+  let totalNet = 0;
+  document.querySelectorAll('.score-row').forEach(row => {
+    const d = parseFloat(row.querySelector('.inp-d').value) || 0;
+    const y = parseFloat(row.querySelector('.inp-y').value) || 0;
+    const net = d - (y / 4);
+    totalNet += net;
+  });
+  document.getElementById('score-modal-net').textContent = totalNet.toFixed(2);
+  return totalNet;
+}
+
+document.getElementById('score-modal-save').addEventListener('click', () => {
+  if (!currentScoreTask) return;
+  const { id, subject, el } = currentScoreTask;
+  
+  const totalNet = calcNet();
+  const details = {};
+  let strLog = '';
+  
+  document.querySelectorAll('.score-row').forEach(row => {
+    const subjName = row.dataset.subj;
+    const d = parseFloat(row.querySelector('.inp-d').value) || 0;
+    const y = parseFloat(row.querySelector('.inp-y').value) || 0;
+    const n = d - (y / 4);
+    details[subjName] = { d, y, n };
+    strLog += \`\${subjName.toUpperCase()}: \${n.toFixed(2)} | \`;
+  });
+
+  const progress = loadProgress();
+  progress[id] = { 
+    completedAt: new Date().toISOString(), 
+    user: currentUser.username,
+    scoreDetails: details,
+    totalNet: totalNet
+  };
+  
+  el.classList.add('checked');
+  el.textContent = '✓';
+  el.parentElement.classList.add('completed');
+  
+  logActivity('complete', subject, id, \`🎯 Toplam: \${totalNet.toFixed(2)} Net (\${strLog.slice(0, -3)})\`);
+  showToast('🎯 Netler kaydedildi!', 'success');
+  
+  if (totalNet > 50) triggerConfetti();
+  
+  saveProgress(progress);
+  updateSidebarProgress();
+  renderTodayProgress(progress);
+  closeScoreModal();
+  
+  // Reload today tasks to show badge immediately
+  renderTodayTasks(STUDY_PLAN[getTodayPlanDay()] || [], currentUser.role === 'admin');
+});
 
 function renderTodayProgress(progress) {
   const planDay = getTodayPlanDay();
@@ -915,12 +1036,20 @@ function renderActivityLog(activity) {
     const subjectName = SUBJECT_META[a.subject]?.label || 'Deneme';
     const actionText = a.type === 'complete' ? 'tamamladı' : a.type === 'deneme' ? 'yaptı' : 'geri aldı';
 
+    let extraHTML = '';
+    if (a.extraDetails) {
+      extraHTML = `<div style="margin-top:0.5rem; font-size:1.1rem; color:var(--primary); font-weight:600; background:rgba(99,102,241,0.1); padding:0.4rem 0.8rem; border-radius:4px; display:inline-block">${a.extraDetails}</div>`;
+    }
+
     html += `<div class="activity-item">
       <div class="activity-dot" style="background:${color}"></div>
       <div class="activity-text">
-        <span class="activity-subject" style="color:${color}">${icon} ${subjectName}</span>
-        — Sultan bir konuyu ${actionText}
-        <div class="activity-time">${timeStr}</div>
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span class="activity-subject" style="color:${color}">${icon} ${subjectName}</span>
+          <div class="activity-time">${timeStr}</div>
+        </div>
+        <div style="margin-top:0.4rem; color:var(--text-main);">Sultan bir konuyu ${actionText}: <strong>${a.title}</strong></div>
+        ${extraHTML}
       </div>
     </div>`;
   });

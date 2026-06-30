@@ -328,6 +328,24 @@
   </div>
 </div>
 
+<!-- SCORE MODAL -->
+<div class="modal-overlay" id="score-modal">
+  <div class="modal" style="max-width:500px">
+    <h2 id="score-modal-title">Deneme Sonucu Gir</h2>
+    <div id="score-modal-body" style="margin-top:1.5rem; display:flex; flex-direction:column; gap:1.2rem">
+      <!-- Dinamik inputlar buraya eklenecek -->
+    </div>
+    <div style="margin-top:1.5rem; padding:1.5rem; background:rgba(99,102,241,0.1); border-radius:10px; text-align:center">
+      <span style="font-size:1.4rem; color:var(--text-secondary)">Toplam Net:</span>
+      <strong id="score-modal-net" style="font-size:2.4rem; color:var(--primary); display:block; margin-top:0.5rem">0.00</strong>
+    </div>
+    <div class="modal-actions" style="margin-top:2rem">
+      <button class="btn-cancel" onclick="closeScoreModal()">İptal</button>
+      <button class="btn btn-primary" id="score-modal-save" style="flex:1">Kaydet</button>
+    </div>
+  </div>
+</div>
+
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script src="firebase-config.js"></script>
