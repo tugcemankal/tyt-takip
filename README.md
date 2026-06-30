@@ -35,10 +35,5 @@ Bu proje, YKS-TYT sınavına hazırlanan bir öğrenci (Sultan) ile ilerlemeyi t
    ```
 4. Tarayıcıdan `http://localhost:8080` adresine gidin.
 
-## 🔐 Giriş Bilgileri (Örnek)
-
-- **Öğrenci:** Kullanıcı Adı: `sultan` / Şifre: `sultan123`
-- **Yönetici:** Kullanıcı Adı: `tugce` / Şifre: `tugce123`
-
 ---
 *Bu proje Antigravity AI asistanı ile geliştirilmiştir.*
