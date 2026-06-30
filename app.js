@@ -521,7 +521,7 @@ document.getElementById('score-modal-save').addEventListener('click', () => {
     const y = parseFloat(row.querySelector('.inp-y').value) || 0;
     const n = d - (y / 4);
     details[subjName] = { d, y, n };
-    strLog += \`\${subjName.toUpperCase()}: \${n.toFixed(2)} | \`;
+    strLog += `${subjName.toUpperCase()}: ${n.toFixed(2)} | `;
   });
 
   const progress = loadProgress();
@@ -536,7 +536,7 @@ document.getElementById('score-modal-save').addEventListener('click', () => {
   el.textContent = '✓';
   el.parentElement.classList.add('completed');
   
-  logActivity('complete', subject, id, \`🎯 Toplam: \${totalNet.toFixed(2)} Net (\${strLog.slice(0, -3)})\`);
+  logActivity('complete', subject, id, `🎯 Toplam: ${totalNet.toFixed(2)} Net (${strLog.slice(0, -3)})`);
   showToast('🎯 Netler kaydedildi!', 'success');
   
   if (totalNet > 50) triggerConfetti();
